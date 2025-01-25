@@ -361,3 +361,15 @@ body {
 	transition-timing-function: ease-out;
 	transition-duration: 0.4s;
 }
+
+.form-option--text input {
+	display: block;
+	width: 50%;
+	height: 30px;
+	font-size: 1rem;
+	font-family: "Russo One", arial, sans-serif;
+	color: rgba(255, 255, 255, 0.5);
+	background-color: transparent;
+	border: 1px solid rgba(255, 255, 255, 0.5);
+	padding: 0 6px;
+}

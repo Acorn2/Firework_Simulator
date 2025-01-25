@@ -43,7 +43,7 @@ function getDefaultScaleFactor() {
 //使用这些来绘制位置
 let stageW, stageH;
 
-//所有质量全局变量都将被覆盖，并通过“configDidUpdate”进行更新。
+//所有质量全局变量都将被覆盖，并通过"configDidUpdate"进行更新。
 let quality = 1;
 let isLowQuality = false;
 let isNormalQuality = false;
@@ -77,11 +77,46 @@ const trailsStage = new Stage("trails-canvas");
 const mainStage = new Stage("main-canvas");
 const stages = [trailsStage, mainStage];
 
-//随机文字烟花内容
-const randomWords = ["新年快乐", "心想事成"];
+// 默认的随机文字
+const defaultWords = ["新年快乐", "心想事成"];
+let randomWords = [...defaultWords];
+
+// 从localStorage获取保存的自定义文字
+const savedWords = localStorage.getItem('customFireworkWords');
+if (savedWords) {
+    randomWords = JSON.parse(savedWords);
+}
+
 const wordDotsMap = {};
 randomWords.forEach((word) => {
-	wordDotsMap[word] = MyMath.literalLattice(word, 3, "Gabriola,华文琥珀", "90px");
+    wordDotsMap[word] = MyMath.literalLattice(word, 3, "Gabriola,华文琥珀", "90px");
+});
+
+// DOM加载完成后设置监听
+document.addEventListener('DOMContentLoaded', () => {
+    const wordInput = document.querySelector('.word-text');
+    if (wordInput) {
+        wordInput.value = randomWords.join(',');
+        wordInput.addEventListener('change', (e) => {
+            const newWords = e.target.value.split(',').filter(word => word.trim());
+            if (newWords.length > 0) {
+                randomWords = newWords;
+                // 更新点阵映射
+                newWords.forEach((word) => {
+                    if (!wordDotsMap[word]) {
+                        wordDotsMap[word] = MyMath.literalLattice(word, 3, "Gabriola,华文琥珀", "90px");
+                    }
+                });
+                // 保存到localStorage
+                localStorage.setItem('customFireworkWords', JSON.stringify(newWords));
+            } else {
+                // 如果输入为空,恢复默认值
+                randomWords = [...defaultWords];
+                localStorage.removeItem('customFireworkWords');
+            }
+            e.target.value = randomWords.join(',');
+        });
+    }
 });
 
 // 自定义背景
@@ -791,7 +826,7 @@ function shellFromConfig(size) {
 }
 
 //获取随机外壳，不包括处理密集型变体
-//注意，只有在配置中选择了“随机”shell时，这才是随机的。
+//注意，只有在配置中选择了"随机"shell时，这才是随机的。
 //还有，这不创建烟花，只返回工厂函数。
 const fastShellBlacklist = ["Falling Leaves", "Floral", "Willow"];
 function randomFastShell() {
@@ -1285,7 +1320,7 @@ function update(frameTime, lag) {
 				star.x += star.speedX * speed;
 				star.y += star.speedY * speed;
 				// Apply air drag if star isn't "heavy". The heavy property is used for the shell comets.
-				//如果星形不是“heavy”，应用空气阻力。重的性质被用于壳彗星。
+				//如果星形不是"heavy"，应用空气阻力。重的性质被用于壳彗星。
 				if (!star.heavy) {
 					star.speedX *= starDrag;
 					star.speedY *= starDrag;
@@ -1717,7 +1752,7 @@ function getWordDots(word) {
  *										允许设置起始圆弧角度(弧度)。
  * @param  {Number} arcLength=TAU       弧的长度(弧度)。默认为整圆。
  *
- * @return {void}              不返回任何内容；由“particleFactory”使用给定的数据。
+ * @return {void}              不返回任何内容；由"particleFactory"使用给定的数据。
  */
 function createBurst(count, particleFactory, startAngle = 0, arcLength = PI_2) {
 	// Assuming sphere with surface area of `count`, calculate various
@@ -1780,7 +1815,7 @@ function createWordBurst(wordText, particleFactory, center_x, center_y) {
 // Various star effects.
 // These are designed to be attached to a star's `onDeath` event.
 //各种星形效果。
-//这些被设计用来附加到一个明星的“死亡”事件。
+//这些被设计用来附加到一个明星的"死亡"事件。
 
 // Crossette breaks star into four same-color pieces which branch in a cross-like shape.
 // Crossette将星形分割成四块相同颜色的星形，这些星形分支成十字形。
@@ -1909,7 +1944,7 @@ class Shell {
 		));
 
 		// making comet "heavy" limits air drag
-		// //让彗星“重”限制空气阻力
+		// //让彗星"重"限制空气阻力
 		comet.heavy = true;
 		// comet spark trail
 		comet.spinRadius = MyMath.random(0.32, 0.85);
@@ -2039,8 +2074,8 @@ class Shell {
 				star.strobe = true;
 				// How many milliseconds between switch of strobe state "tick". Note that the strobe pattern
 				// is on:off:off, so this is the "on" duration, while the "off" duration is twice as long.
-				//频闪状态切换之间多少毫秒“滴答”。注意，选通模式
-				//是开:关:关，所以这是“开”的时长，而“关”的时长是两倍。
+				//频闪状态切换之间多少毫秒"滴答"。注意，选通模式
+				//是开:关:关，所以这是"开"的时长，而"关"的时长是两倍。
 				star.strobeFreq = Math.random() * 20 + 40;
 				if (this.strobeColor) {
 					star.secondColor = this.strobeColor;
@@ -2207,8 +2242,8 @@ class Shell {
 		// We don't want multiple sounds from pistil or streamer "sub-shells".
 		// This can be detected by the presence of a comet.
 
-		//播放声音，但只针对“原装”shell，即被推出的那个。
-		//我们不希望多个声音来自雌蕊或流光“子壳”。
+		//播放声音，但只针对"原装"shell，即被推出的那个。
+		//我们不希望多个声音来自雌蕊或流光"子壳"。
 		//这可以通过彗星的出现来检测。
 
 		if (this.comet) {
